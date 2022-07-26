@@ -4,15 +4,15 @@ import subprocess
 import glob
 from pathlib import Path
 
-savepath =  '../results/heritability_071722'
+savepath =  '../results/heritability_072522'
 
 data_path = '../data/simulation'
 
-# data_path = '/scratch/users/aconard/sims/k_obs_pve/overlap_sim'
+data_path = '/scratch/users/aconard/sims/k_obs_pve/overlap_sim'
 # data_path = '/scratch/users/aconard/sims/k_obs_pve/non_overlap_sim'
-# filelist = list(Path(data_path).rglob('Xsim_labeled.*.txt'))
+filelist = list(Path(data_path).rglob('Xsim_labeled.*.txt'))
 
-data_path = '../data/als_snps223095'
+# data_path = '../data/als_snps223095'
 # data_path = '../data/diabetes_snps72820'
 # filelist = list(Path(data_path).rglob('data_pd.*.pkl'))
 
