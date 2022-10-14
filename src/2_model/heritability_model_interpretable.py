@@ -127,7 +127,7 @@ def train_model(mod_type, train_x, test_x, train_y, test_y, var_labels=None, cau
     if mod_type == 'log_reg':
         mlmod = LogisticRegression(penalty='l2', solver='liblinear', class_weight='balanced', random_state=rand_state)
         mlmod.fit(train_x, np.ravel(train_y)) 
-        test_class_auc = mlmod.score(test_x, test_y) #confirm that score is AUC
+        test_class_auc = roc_auc_score(test_y, mlmod.predict_proba(test_x)[:, 1]) #confirm that score is AUC
 
         if calc_interpretability:
             if var_type == 'snps':
@@ -139,7 +139,7 @@ def train_model(mod_type, train_x, test_x, train_y, test_y, var_labels=None, cau
     elif mod_type == 'rand_forest':
         mlmod = RandomForestClassifier(class_weight='balanced', random_state=rand_state)
         mlmod.fit(train_x, np.ravel(train_y)) 
-        test_class_auc = mlmod.score(test_x, test_y) #confirm that score is AUC
+        test_class_auc = roc_auc_score(test_y, mlmod.predict_proba(test_x)[:, 1]) #confirm that score is AUC
 
         if calc_interpretability:
             if var_type == 'snps':
