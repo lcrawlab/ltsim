@@ -40,7 +40,7 @@ fst <- as.double(args[10])# 0 if none, value above 0 otherwise (0.005)
 
 ################## PARAMS ###########################
 # Population Stats
-ind = 1e6 # Number of Individuals in the Populations
+ind = 1e2 ####6 # Number of Individuals in the Populations
 tot_snp_sim = 5e3 #Number of Total SNPs in the Data
 frac_causal = .1 # Fraction of SNPs that are causal
 
@@ -59,7 +59,7 @@ maf_frac = 0.05 # MAF fraction
 rho=0.5 # proportion that is additive
 
 # Set dataset number to simulate 
-ndatasets = 10
+ndatasets = 2 #### 10
 
 cat("params:ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, sep="-")
 
@@ -207,31 +207,38 @@ cat(causal_s$n_c_snps)
 
 # Generate causal SNP genome across individuals (ind)
 cat("\nCreating genome...\n")
-if (fst){
+cat("\n fst..\n")
+cat(fst)
+if (fst>=0){
+    cat("\nhere...\n")
     ### Set up Population Structure ###
-    maf <- 0.05 + 0.4*runif(nsnp)
+    maf <- 0.05 + 0.4*runif(tot_snp_sim)
     delta = sqrt(maf-maf^2-maf*(1-maf)*(1-fst))
 
     ### Population #1 ###
-    Geno1   <- (runif((ind/2)*nsnp) < (maf+delta)) + (runif((ind/2)*nsnp) < (maf+delta))
-    Geno1   <- matrix(as.double(Geno1),ind/2,nsnp,byrow = TRUE)
+    Geno1   <- (runif((ind/2)*tot_snp_sim) < (maf+delta)) + (runif((ind/2)*tot_snp_sim) < (maf+delta))
+    Geno1   <- matrix(as.double(Geno1),ind/2,tot_snp_sim,byrow = TRUE)
 
     ### Population #2 ###
-    Geno2   <- (runif((ind/2)*nsnp) < (maf-delta)) + (runif((ind/2)*nsnp) < (maf-delta))
-    Geno2   <- matrix(as.double(Geno2),ind/2,nsnp,byrow = TRUE)
+    Geno2   <- (runif((ind/2)*tot_snp_sim) < (maf-delta)) + (runif((ind/2)*tot_snp_sim) < (maf-delta))
+    Geno2   <- matrix(as.double(Geno2),ind/2,tot_snp_sim,byrow = TRUE)
 
     ### Combine the Populations ###
-    Geno = rbind(Geno1,Geno2); rm(Geno1); rm(Geno2)
+    geno = rbind(Geno1,Geno2); rm(Geno1); rm(Geno2)
 }else{
+    cat("\nhere2...\n")
     maf  <- maf_frac + 0.45*runif(causal_s$n_c_snps) # amc updated
     geno <- (runif(ind*causal_s$n_c_snps) < maf) + (runif(ind*causal_s$n_c_snps) < maf)
     geno <- matrix(as.double(geno),ind,causal_s$n_c_snps,byrow = TRUE)
+}
 
 cat("\nComplete.\n")
 colnames(geno) <- causal_s$causal_snps 
+cat("\ncolnames.\n")    
 Xmean <- apply(geno, 2, mean); 
+cat("\nXmean.\n")
 Xsd <- apply(geno, 2, sd);
-    
+cat("\nXsd.\n")    
 # Generate replicates, where each has a new partition of causal SNPs into one of the interaction groups, or into the additive group. 
 # NOTE: keeping causal genes and pathways indexed by dataset if we want to increase complexity
 for (ndat in 1:ndatasets){
