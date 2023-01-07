@@ -149,39 +149,40 @@ get_causal_snps <- function(mask1_pd, causal_genes, frac_causal){
 
 
 # MAIN
-# Import masks data
-mask1_pd = read.csv(MASK1_DIR, sep=" ", row.names=1)
-mask2_pd = read.csv(MASK2_DIR, sep=" ", row.names=1)
-mask3_pd = read.csv(MASK3_DIR, sep=" ", row.names=1)
 
-cat("\nMatrix Stats")
-tot_pathways = ncol(mask2_pd) #Number of pathways
-cat("\ntotal pathways\n")
-cat(tot_pathways)
-tot_genes = nrow(mask2_pd)
-cat("\ntotal genes\n")
-cat(tot_genes)
-tot_snp = nrow(mask1_pd)
-cat("\ntotal SNPs\n")
-cat(tot_snp)
-
-cat("\nMask 1 (SNPs to genes)\n")
-cat(dim(mask1_pd))
-cat("\nSum of mask 1 (SNPs to genes)\n")
-cat(sum(mask1_pd))
-
-cat("\nMask 2 (genes to pathways)\n")
-cat(dim(mask2_pd))
-cat("\nSum of mask 2 (genes to pathways)\n")
-cat(sum(mask2_pd))
-
-cat("\nMask 3 (SNPs to pathways)\n")
-cat(dim(mask3_pd))
-cat("\nSum of mask 3 (SNPs to pathways)\n")
-cat(sum(mask3_pd))
-    
 # Uniformly sample causal SNPs/eQTLs (via biological hierarchy or without)
 if (hierarchy){
+    # Import masks data
+    mask1_pd = read.csv(MASK1_DIR, sep=" ", row.names=1)
+    mask2_pd = read.csv(MASK2_DIR, sep=" ", row.names=1)
+    mask3_pd = read.csv(MASK3_DIR, sep=" ", row.names=1)
+
+    cat("\nMatrix Stats")
+    tot_pathways = ncol(mask2_pd) #Number of pathways
+    cat("\ntotal pathways in mask 2\n")
+    cat(tot_pathways)
+    tot_genes = nrow(mask2_pd)
+    cat("\ntotal genes in mask 2\n")
+    cat(tot_genes)
+    tot_snp_sim = nrow(mask1_pd)
+    cat("\ntotal SNPs in mask 1\n")
+    cat(tot_snp_sim)
+
+    cat("\nMask 1 (SNPs to genes)\n")
+    cat(dim(mask1_pd))
+    cat("\nSum of mask 1 (SNPs to genes)\n")
+    cat(sum(mask1_pd))
+
+    cat("\nMask 2 (genes to pathways)\n")
+    cat(dim(mask2_pd))
+    cat("\nSum of mask 2 (genes to pathways)\n")
+    cat(sum(mask2_pd))
+
+    cat("\nMask 3 (SNPs to pathways)\n")
+    cat(dim(mask3_pd))
+    cat("\nSum of mask 3 (SNPs to pathways)\n")
+    cat(sum(mask3_pd))
+    
     # Sample fraction causal sampled pathways' fraction causal sampled genes' fraction causal sampled snps
     print("\nGetting causal pathways...\n")
     causal_p = get_causal_pathways(mask2_pd, tot_pathways, frac_causal)
@@ -204,9 +205,9 @@ if (hierarchy){
 }else{
     # Uniformly sample SNPs/eQTLs
     print("\nGetting causal eQTL/SNPs in causal genes...\n")
-    causal_snps = unique(sample(1:tot_snp, size=round(tot_snp*frac_causal), replace=F))
+    causal_snps = unique(sample(1:tot_snp_sim, size=round(tot_snp_sim*frac_causal), replace=F))
     causal_s = list(causal_snps=causal_snps, n_c_snps=length(causal_snps))
-    cat(causal_s$causal_snps)
+    cat(causal_s$causal_snps[1:6])
     cat("\n")
     cat(dim(causal_s$n_c_snps))
 }
@@ -245,6 +246,7 @@ cat("\nGenome complete.
 Genome dimensions:\n")
 cat(dim(geno),"\n")
 colnames(geno) <- paste0("s",1:tot_snp_sim)
+rownames(geno) <- paste0("per",1:ind)
 Xmean <- apply(geno, 2, mean); 
 Xsd <- apply(geno, 2, sd);
 # Generate replicates, where each has a new partition of causal SNPs into one of the interaction groups, or into the additive group. 
@@ -273,13 +275,6 @@ for (ndat in 1:ndatasets){
     cat("\n")
     cat(s3)
     cat("\nCenter and scale causal SNP sets")
-    cat(dim(geno))
-    cat("\n")
-    cat(colnames(geno))
-    cat("\n")
-    cat(rownames(geno))
-    cat("\n")
-    sys.exit()
     Xcausal1=t((t(geno[,s1])-Xmean[s1])/Xsd[s1]);
     Xcausal2=t((t(geno[,s2])-Xmean[s2])/Xsd[s2]);
     Xcausal3=t((t(geno[,s3])-Xmean[s3])/Xsd[s3]);
