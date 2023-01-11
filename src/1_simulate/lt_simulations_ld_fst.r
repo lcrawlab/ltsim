@@ -27,7 +27,7 @@ library(hash)
 
 # Argument assignments
 SEED <- as.integer(args[1]); set.seed(SEED)
-MASK_DIR <- args[2]
+MASK_DIR <- args[2] # NA or directory
 SIM_OUTDIR <- args[3]
 RES_OUTDIR <- args[4]
 NON_OVERLAP_USED <-as.integer(args[5])
@@ -43,7 +43,7 @@ hierarchy <- as.integer(args[11]) # 0 if no, 1 if yes
 # Population Stats
 ind = 15e3 #1e6 # Number of Individuals in the Populations
 tot_snp_sim = 1e5 #5e3 #Number of Total SNPs in the Data
-frac_causal = .005 # Fraction of SNPs that are causal
+frac_causal = 0.005 # Fraction of SNPs that are causal
 
 ##### GOOD FOR TESTING Population params #######  
 # ind = 1e3 # Number of Individuals in the Populations
@@ -55,45 +55,42 @@ frac_causal = .005 # Fraction of SNPs that are causal
 
 # Simulating phenotypes params
 maf_frac = 0.05 # MAF fraction
-#snp_set_degree = 5 # Number of SNPs per gene
-#pve=0.6 # broad sense heritability
 rho=0.5 # proportion that is additive
 
 # Set dataset number to simulate 
-ndatasets = 10 #### 10
+ndatasets = 5 #### 10
 
 cat("params:ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
 
-if(NON_OVERLAP_USED){
-    print("non-overlap masks used")
-    SUB_OUTDIR_NAME = paste("non_overlap_degree",NON_OVERLAP_USED,"ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case,"fst", fst, sep="-")
-    # Input biological masks
-    MASK1_DIR <- paste(MASK_DIR,"masksim_1_non_overlap_labeled.txt",sep="/")
-    MASK2_DIR <- paste(MASK_DIR,"masksim_2_non_overlap_labeled.txt",sep="/")
-    MASK3_DIR <- paste(MASK_DIR,"masksim_3_non_overlap_labeled.txt",sep="/")
-    
-}else{
-    print("overlap masks used")
-    SUB_OUTDIR_NAME = paste("ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
+if(hierarchy){
+    if(NON_OVERLAP_USED){
+        print("non-overlap masks used")
+        SUB_OUTDIR_NAME = paste("non_overlap_degree",NON_OVERLAP_USED,"ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case,"fst", fst, sep="-")
+        # Input biological masks
+        MASK1_DIR <- paste(MASK_DIR,"masksim_1_non_overlap_labeled.txt",sep="/")
+        MASK2_DIR <- paste(MASK_DIR,"masksim_2_non_overlap_labeled.txt",sep="/")
+        MASK3_DIR <- paste(MASK_DIR,"masksim_3_non_overlap_labeled.txt",sep="/")
 
-    # Input biological masks
-    MASK1_DIR <- paste(MASK_DIR,"mask1_pd.txt",sep="/")
-    MASK2_DIR <- paste(MASK_DIR,"mask2_pd.txt",sep="/")
-    MASK3_DIR <- paste(MASK_DIR,"mask3_pd.txt",sep="/")
+    }else{
+        print("overlap masks used")
+        SUB_OUTDIR_NAME = paste("ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
+
+        # Input biological masks
+        MASK1_DIR <- paste(MASK_DIR,"mask1_pd.txt",sep="/")
+        MASK2_DIR <- paste(MASK_DIR,"mask2_pd.txt",sep="/")
+        MASK3_DIR <- paste(MASK_DIR,"mask3_pd.txt",sep="/")
+    }
+}else{
+    print("No hierarchy information used")
+    SUB_OUTDIR_NAME = paste("no_hier-ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
 }
 ######################################################
-
 
 # Create output dirs if needed
 path = paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/")
 dir.create(path, showWarnings = TRUE, recursive = TRUE, mode = "0777")
 path = paste(RES_OUTDIR,SUB_OUTDIR_NAME,sep="/")
 dir.create(path, showWarnings = TRUE, recursive = TRUE, mode = "0777")
-path_sparsenn = paste(path,"sparsenn_results",sep="/")
-dir.create(path_sparsenn, showWarnings = TRUE, recursive = TRUE, mode = "0777")
-path_banns = paste(path,"banns_results",sep="/")
-dir.create(path_banns, showWarnings = TRUE, recursive = TRUE, mode = "0777")
-
 
 # Get fraction causal pathways
 get_causal_pathways<- function(mask2_pd, tot_pathways, frac_causal){    
@@ -148,7 +145,10 @@ get_causal_snps <- function(mask1_pd, causal_genes, frac_causal){
 }
 
 
-# MAIN
+## MAIN
+
+# Name all SNPs by 's<INT>' for total number of SNPs
+all_snp_names = paste0("s",1:tot_snp_sim)
 
 # Uniformly sample causal SNPs/eQTLs (via biological hierarchy or without)
 if (hierarchy){
@@ -204,59 +204,66 @@ if (hierarchy){
 
 }else{
     # Uniformly sample SNPs/eQTLs
-    print("\nGetting causal eQTL/SNPs in causal genes...\n")
-    causal_snps = unique(sample(1:tot_snp_sim, size=round(tot_snp_sim*frac_causal), replace=F))
+    print("\nSampling causal eQTL/SNPs uniformly at random...\n")
+    causal_snps = unique(sample(all_snp_names, size=round(tot_snp_sim*frac_causal), replace=F))
     causal_s = list(causal_snps=causal_snps, n_c_snps=length(causal_snps))
+    cat("Example:\n")
     cat(causal_s$causal_snps[1:6])
-    cat("\n")
-    cat(dim(causal_s$n_c_snps))
+    cat("Complete.\n")
 }
-# Generate causal SNP genome across individuals (ind)
-cat("\nCreating genome...")
-if (fst>=0){
-    ### Set up Population Structure ###
-    maf <- maf_frac + 0.4*runif(tot_snp_sim)
-    delta = sqrt(maf-maf^2-maf*(1-maf)*(1-fst)) # TODO: check for FST
 
-    ### Population #1 ###
+# Generate causal SNP genome across individuals (ind)
+cat("Creating genome...")
+if (fst>=0){
+    # Create population structure
+    maf <- maf_frac + 0.4*runif(tot_snp_sim)
+    delta = sqrt(maf-maf^2-maf*(1-maf)*(1-fst))
+
+    # Population A
     Geno1   <- (runif((ind/2)*tot_snp_sim) < (maf+delta)) + (runif((ind/2)*tot_snp_sim) < (maf+delta))
     Geno1   <- matrix(as.double(Geno1),ind/2,tot_snp_sim,byrow = TRUE)
-
-    cat("\ngeno 1 dim\n")
-    cat(dim(Geno1))
+    rownames(Geno1) <- paste0("popA",1:dim(Geno1)[1])
+    cat("\nGenome population A dimension:\n")
+    cat(dim(Geno1),"\n")
     
-    ### Population #2 ###
+    # Population B
     Geno2   <- (runif((ind/2)*tot_snp_sim) < (maf-delta)) + (runif((ind/2)*tot_snp_sim) < (maf-delta))
     Geno2   <- matrix(as.double(Geno2),ind/2,tot_snp_sim,byrow = TRUE)
-
-    cat("\ngeno 2 dim\n")
+    len_geno1 = dim(Geno1)[1]+1
+    rownames(Geno2) <- paste0("popB",len_geno1:ind)
+    cat("\nGenome population B dimension:\n")
     cat(dim(Geno2))
     
-    ### Combine the Populations ###
+    # Combine populations
     geno = rbind(Geno1,Geno2); rm(Geno1); rm(Geno2)
+
+}else if(fst==0){
+    # Simulate genotypes without population structure
+    geno <- (runif(ind*tot_snp_sim) < maf) + (runif(ind*tot_snp_sim) < maf)
+    geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow = TRUE)
+
 }else{
-    exit("Please enter an FST value 0 - 1, or run lt_simulations.r (without FST parameter).")
-#     cat("\nhere2...\n")
-#     maf  <- maf_frac + 0.45*runif(causal_s$n_c_snps) # amc updated
-#     geno <- (runif(ind*causal_s$n_c_snps) < maf) + (runif(ind*causal_s$n_c_snps) < maf)
-#     geno <- matrix(as.double(geno),ind,causal_s$n_c_snps,byrow = TRUE)
+    exit("Please enter an FST value >0, or type 0 to run LTSim without FST.")
 }
 
 cat("\nGenome complete. 
 Genome dimensions:\n")
 cat(dim(geno),"\n")
-colnames(geno) <- paste0("s",1:tot_snp_sim)
-rownames(geno) <- paste0("per",1:ind)
+colnames(geno) <- all_snp_names
+print(geno[1:4,1:4])
+
+# Calculate mean and std. for X genotype matrix.
 Xmean <- apply(geno, 2, mean); 
 Xsd <- apply(geno, 2, sd);
+
 # Generate replicates, where each has a new partition of causal SNPs into one of the interaction groups, or into the additive group. 
 # NOTE: keeping causal genes and pathways indexed by dataset if we want to increase complexity
 for (ndat in 1:ndatasets){
-    
+    cat("Dataset replicate: ", ndat, "\n")
     cat("\nNumber of causal SNPs")
     nsnp = round(tot_snp_sim*frac_causal)
     
-    cat("\nSplit into causal 1, causal 2, and causal 3")
+    cat(paste("\nSplit ", tot_snp_sim," into causal 1, causal 2, and causal 3"))
     nthird_causal_snps = floor(causal_s$n_c_snps/3)
     
     cat("\nSample interacting (s1, s2) and additive (s3) SNPs.")
@@ -268,18 +275,12 @@ for (ndat in 1:ndatasets){
     
     s3=sample(causal_s$causal_snps[causal_s$causal_snps%in%c(s1,s2)==FALSE], causal_s$n_c_snps-length(s1)-length(s2), replace=F)
     ncausal3= length(s3)
-    cat("\ns1,s2,s3\n")
-    cat(s1)
-    cat("\n")
-    cat(s2)
-    cat("\n")
-    cat(s3)
-    cat("\nCenter and scale causal SNP sets")
+    
+    cat("\nCenter and scale causal SNP sets.")
     Xcausal1=t((t(geno[,s1])-Xmean[s1])/Xsd[s1]);
     Xcausal2=t((t(geno[,s2])-Xmean[s2])/Xsd[s2]);
     Xcausal3=t((t(geno[,s3])-Xmean[s3])/Xsd[s3]);
-    cat("Dataset: ")
-    cat(ndat)
+    
     cat("\nNumber interacting causal SNPS s1:\n")
     cat(dim(Xcausal1))
     cat("\nNumber interacting causal SNPS s2:\n")
@@ -297,7 +298,7 @@ for (ndat in 1:ndatasets){
     cat("\nRemove unneeded marginal parameters for storage")
     rm(Xmarginal); rm(Xcausal3)
     
-    cat("\nCreate causal epistatic matrix between s1 and s2 SNPs")
+    cat("\nCreate causal epistatic matrix between s1 and s2 SNPs with dimension:\n")
     Xepi=c()
     for(i in 1:ncausal1){
       Xepi=cbind(Xepi,Xcausal1[,i]*Xcausal2)
@@ -320,110 +321,109 @@ for (ndat in 1:ndatasets){
     y_err=rnorm(ind)
     y_err=y_err*sqrt((1-pve)/var(y_err))
 
-    cat("\ Continuous phenotype calculation")
+    cat("\nContinuous phenotype calculation")
     y=y_marginal+y_epi+y_err
 
     cat("\nRemove unneeded parameters for storage")
     rm(y_marginal); rm(y_epi)
 
-    cat("\nSet threshold")
+    cat("\nSet threshold:\n")
     thresh=qnorm(1-k,mean=0,sd=1)
+    cat(thresh)
 
     cat("\nSet phenotype")
     pheno=(y>thresh)+1
 
-    cat("\nGet number of cases and controls")
-    ncases = sum(pheno==2); ncases/length(y)
-    ncontrols = sum(pheno==1); ncontrols/length(y)
-    
-    cat("\nPrint the number of patients with and without disease.")
-    cat("\nNumber of cases:\n")
+    cat("\nGet number of affected and unaffected people.\n")
+    ncases = sum(pheno==2)
+    cat("Prop diseased indivs: ", ncases/length(y),"\n")
+    cat("Number of affected:\n")
     cat(ncases) #todo: update variable names to be disease_indivs
-    cat("\nNumber of controls:\n")
+    ncontrols = sum(pheno==1)
+    cat("Prop normal indivs: ", ncontrols/length(y),"\n")
+    cat("Number of unaffected:\n")
     cat(ncontrols) #todo: update variable names to be normal_indivs
+    
+    # Number diseased individuals to sample
     num_cases = floor(obs*prop_case)
-    cat("\nNumber of diseased individuals to sample:\n")
+    cat("Number of diseased individuals to sample:\n")
     cat(num_cases)
 
     # Check that there are enough cases to sample for observations
     if(!(length(which(y>thresh))>floor(num_cases))){
         cat("\nError: There should be enough obs. to sample under threshold\n")
         cat(length(which(y>thresh)))
-        cat(">")
-        cat(num_cases,"\n")
+        cat(">",num_cases,"\n")
         next
     }
-    # stopifnot("There should be enough obs. to sample under threshold"=(length(which(z>thresh))>floor(obs/2)))
 
-    cat("\nSample cases and controls given calculated threshold")
+    cat("Sample cases and controls given calculated threshold.\n")
     cases = sample(which(y>thresh),num_cases,replace = FALSE)
     controls = sample(which(y<=thresh),floor(obs-num_cases),replace = FALSE)
-    y = pheno[c(cases,controls)]
-    X = geno[c(cases,controls),]
-    print("\nCausal SNPs cases and control size\n")
-    print(dim(X))
-    print("\nNumber cases:\n")
-    print(head(cases))
-    print("\nNumber controls:\n")
-    print(head(controls))
+    y = pheno[c(cases,controls)] # vector of 2s (affected) and 1s (unaffected)
+    X = geno[c(cases,controls),] # 
+    
+    if (hierarchy){
+        cat("\nEnsure no duplicate eQTL/SNP names")
+        stopifnot("Resolve: duplicate eQTL/SNP names."=length(unique(colnames(X)))==length(colnames(X)))
+    }
 
-#     cat("\nCreate the synthetic genotypes for non-causal SNPs")
-#     maf <- maf_frac + 0.45*runif(tot_snp_sim-nsnp)
-#     X2   <- (runif(nrow(X)*(tot_snp_sim-nsnp)) < maf) + (runif(nrow(X)*(tot_snp_sim-nsnp)) < maf)
-#     X2   <- matrix(as.double(X2),nrow(X),tot_snp_sim-nsnp,byrow = TRUE)
-    
-    cat("\nSample non-causal eQTL/SNPs")
-    all_snp_names = rownames(mask1_pd)
-    stopifnot("Resolve: repeated SNPs in total SNP names." = length(unique(all_snp_names))==length(all_snp_names)) # ensure no repeated SNPs in SNPs to choose from
-    possible_non_causal_snps = setdiff(all_snp_names, colnames(X))
-    colnames(X2) = sample(possible_non_causal_snps, ncol(X2), replace=F)
-    
-    cat("\nCombine causal and non-causal SNPs")
-    X = cbind(X,X2)
-    
-    cat("\nEnsure no duplicate eQTL/SNP names")
-    stopifnot("Resolve: duplicate eQTL/SNP names."=length(unique(colnames(X)))==length(colnames(X)))
-    
+    cat("\nSampled genotypes (X) across two populations look looks like:\n")
+    print(X[1:4,1:4])
+    cat("Dimensions: ",dim(X), "\n")
+
     cat("\nCenter and scale final X (causal and non-causal SNPs/eQTLs)")
     Xmean=apply(X, 2, mean); 
     Xsd=apply(X, 2, sd); 
     Xcs=t((t(X)-Xmean)/Xsd)
     
-    # Filter mask 1 to include simulation eQTLs/SNPs mapping to genes")
-    tmp = mask1_pd[colnames(X),]
-    mask1_sim = tmp[,(which(colSums(tmp)>0))]
-    
-    print("mask1_sim")
-    print(dim(mask1_sim))
+    if (hierarchy){
+        # Filter mask 1 to include simulation eQTLs/SNPs mapping to genes")
+        tmp = mask1_pd[colnames(X),]
+        mask1_sim = tmp[,(which(colSums(tmp)>0))]
 
-    cat("\nCheck that X column names match mask1_sim")
-    stopifnot("Resolve: X SNP order does not match mask1_sim."=identical(colnames(X), rownames(mask1_sim))==T)
+        print("mask1_sim")
+        print(dim(mask1_sim))
+
+        cat("\nCheck that X column names match mask1_sim")
+        stopifnot("Resolve: X SNP order does not match mask1_sim."=identical(colnames(X), rownames(mask1_sim))==T)
+
+        cat("\nFilter mask 2 to include simulation genes mapping to pathways")
+        tmp = mask2_pd[colnames(mask1_sim),]
+        mask2_sim = tmp[,(which(colSums(tmp)>0))]
+        print("mask2_sim")
+        print(dim(mask2_sim))
+
+        cat("\nFilter mask 3 to include simulation genes mapping to pathways")
+        tmp = mask3_pd[rownames(mask1_sim),]
+        mask3_sim = tmp[,(which(colSums(tmp)>0))]
+        print("mask3_sim")
+        print(dim(mask3_sim))
     
-    cat("\nFilter mask 2 to include simulation genes mapping to pathways")
-    tmp = mask2_pd[colnames(mask1_sim),]
-    mask2_sim = tmp[,(which(colSums(tmp)>0))]
-    print("mask2_sim")
-    print(dim(mask2_sim))
-    
-    cat("\nFilter mask 3 to include simulation genes mapping to pathways")
-    tmp = mask3_pd[rownames(mask1_sim),]
-    mask3_sim = tmp[,(which(colSums(tmp)>0))]
-    print("mask3_sim")
-    print(dim(mask3_sim))
+        #Save masks unlabeled row and columns
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_1", as.character(ndat),"txt", sep="."),sep="/"), mask1_sim, sep=" ", row.names=FALSE, , col.names=FALSE)
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_2", as.character(ndat),"txt", sep="."),sep="/"), mask2_sim, sep=" ", row.names=FALSE, , col.names=FALSE)
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_3", as.character(ndat),"txt", sep="."),sep="/"), mask3_sim, sep=" ", row.names=FALSE, , col.names=FALSE)
+
+        #Save masks labeled row and columns
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_1_labeled", as.character(ndat),"txt", sep="."),sep="/"), mask1_sim, sep=" ", quote=FALSE)
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_2_labeled", as.character(ndat),"txt", sep="."),sep="/"), mask2_sim, sep=" ", quote=FALSE)
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_3_labeled", as.character(ndat),"txt", sep="."),sep="/"), mask3_sim, sep=" ", quote=FALSE)
+
+        # Save causal pathways, genes, and eQTLs/SNPs
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("causal_pathways", as.character(ndat),"txt", sep="."),sep="/"), causal_p$causal_pathways, sep=" ", quote=FALSE,row.names=FALSE, col.names=FALSE)
+        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("causal_genes", as.character(ndat),"txt", sep="."),sep="/"), causal_g$causal_genes, sep=" ", quote=FALSE,row.names=FALSE, col.names=FALSE)
+    }
     
     cat("\nSave files")
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"), paste("Xsim", as.character(ndat),"txt", sep="."),sep="/"), X, sep=" ", row.names=FALSE, col.names=FALSE)
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"), paste("Xsim_cent_scal", as.character(ndat),"txt", sep="."),sep="/"), Xcs, sep=" ", row.names=FALSE, col.names=FALSE)
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("ysim", as.character(ndat),"txt", sep="."),sep="/"), y, sep=" ", row.names=FALSE, col.names=FALSE)
-    write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_1", as.character(ndat),"txt", sep="."),sep="/"), mask1_sim, sep=" ", row.names=FALSE, , col.names=FALSE)
-        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_2", as.character(ndat),"txt", sep="."),sep="/"), mask2_sim, sep=" ", row.names=FALSE, , col.names=FALSE)
-        write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_3", as.character(ndat),"txt", sep="."),sep="/"), mask3_sim, sep=" ", row.names=FALSE, , col.names=FALSE)
-
+    
     cat("\nSave files again but with the names of the SNPs/SNP-sets")
     #colnames(X) = paste("SNP",1:ncol(X),sep="")
-    rownames(X) = paste("sample",1:nrow(X),sep="")
-    rownames(Xcs) = paste("sample",1:nrow(Xcs),sep="")
-    
+    #rownames(X) = paste("sample",1:nrow(X),sep="")
+    #rownames(Xcs) = paste("sample",1:nrow(Xcs),sep="")
     #colnames(mask) = paste("SNP_set",1:ncol(mask),sep="")
     #rownames(mask) = colnames(X)
 
@@ -432,23 +432,10 @@ for (ndat in 1:ndatasets){
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("Xsim_labeled", as.character(ndat),"txt", sep="."),sep="/"), X, sep=" ", quote=FALSE)
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("Xsim_labeled_cent_scal", as.character(ndat),"txt", sep="."),sep="/"), Xcs, sep=" ", quote=FALSE)
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("ysim_labeled", as.character(ndat),"txt", sep="."),sep="/"), y_matrix, sep=" ", quote=FALSE, row.names=FALSE)
-    write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_1_labeled", as.character(ndat),"txt", sep="."),sep="/"), mask1_sim, sep=" ", quote=FALSE)
-    write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_2_labeled", as.character(ndat),"txt", sep="."),sep="/"), mask2_sim, sep=" ", quote=FALSE)
-    write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("masksim_3_labeled", as.character(ndat),"txt", sep="."),sep="/"), mask3_sim, sep=" ", quote=FALSE)
     
-    # Save causal pathways, genes, and eQTLs/SNPs
-    write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("causal_pathways", as.character(ndat),"txt", sep="."),sep="/"), causal_p$causal_pathways, sep=" ", quote=FALSE,row.names=FALSE, col.names=FALSE)
-    write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("causal_genes", as.character(ndat),"txt", sep="."),sep="/"), causal_g$causal_genes, sep=" ", quote=FALSE,row.names=FALSE, col.names=FALSE)
+    # Save causal SNPs/eQTLs
     write.table(file=paste(paste(SIM_OUTDIR,SUB_OUTDIR_NAME,sep="/"),paste("causal_snps", as.character(ndat),"txt", sep="."),sep="/"), c(s1,s2), sep=" ", quote=FALSE,row.names=FALSE, col.names=FALSE)
 
-    cat("\nMask 1 annotations:\n")
-    #print(head(mask1_sim))
-    cat(dim(mask1_sim))
-    
-    cat("\nMask 3 annotations:\n")
-    #print(head(mask2_sim))
-    cat(dim(mask3_sim))
-    
     # Output number of cases above threshold
     cat("\nNumber of cases above threshold:\n")
     cat(length(which(y>thresh)),"\n")
@@ -457,11 +444,23 @@ for (ndat in 1:ndatasets){
     cat("\nDimensions of X: ", dim(X), "\n")
     cat("Dimensions of y: ", length(y), "\n")
 
-    cat(paste("\nNumber of SNPs:", dim(mask1_sim)[1], "\n"))
-    cat(paste("Number of SNP-sets:", dim(mask1_sim)[2], "\n"))
-    cat(paste("Number of pathways:", dim(mask3_sim)[2], "\n"))
+    cat(paste("\nNumber of SNPs:", tot_snp_sim, "\n"))
+    cat(paste("\nNumber of causal SNPs:", causal_s$n_c_snps, "\n"))
     
-    cat(paste("\nNumber of causal SNPs:", length(c(s1,s2)), "\n"))
-    cat(paste("Number of causal SNP-sets:", causal_g$n_c_genes, "\n"))
-    cat(paste("Number of causal pathways:", causal_p$n_c_pathways, "\n")) 
+    if (hierarchy){
+        cat("\nMask 1 annotations:\n")
+        #print(head(mask1_sim))
+        cat(dim(mask1_sim))
+
+        cat("\nMask 3 annotations:\n")
+        #print(head(mask2_sim))
+        cat(dim(mask3_sim))
+        
+        cat(paste("Number of SNP-sets:", dim(mask1_sim)[2], "\n"))
+        cat(paste("Number of pathways:", dim(mask3_sim)[2], "\n"))
+        cat(paste("Number of causal SNP-sets:", causal_g$n_c_genes, "\n"))
+        cat(paste("Number of causal pathways:", causal_p$n_c_pathways, "\n"))
+    }
+
+    cat("LTSim complete.")
 }
