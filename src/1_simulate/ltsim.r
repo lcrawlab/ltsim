@@ -214,7 +214,8 @@ if (hierarchy){
 
 # Generate causal SNP genome across individuals (ind)
 cat("Creating genome...")
-if (fst>=0){
+maf <- maf_frac + 0.4*runif(tot_snp_sim)
+if (fst>0){
     # Create population structure
     maf <- maf_frac + 0.4*runif(tot_snp_sim)
     delta = sqrt(maf-maf^2-maf*(1-maf)*(1-fst))
@@ -241,7 +242,7 @@ if (fst>=0){
     # Simulate genotypes without population structure
     geno <- (runif(ind*tot_snp_sim) < maf) + (runif(ind*tot_snp_sim) < maf)
     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow = TRUE)
-
+    rownames(geno) <- paste0("pop", 1:ind)
 }else{
     exit("Please enter an FST value >0, or type 0 to run LTSim without FST.")
 }
