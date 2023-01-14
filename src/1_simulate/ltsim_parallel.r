@@ -13,9 +13,9 @@ rm(list = ls(all = TRUE))
 # Input
 args = commandArgs(TRUE)
 if (length(args)==0) {
-	  stop("Input: SEED (int), MASK_DIR, SIM_OUTDIR, RES_OUTDIR, NON_OVERLAP_USED (0 or positive integer for degree), k, obs, pve, prop_case fst hierarchy, chunk.size", call.=FALSE)
-} else if (length(args) < 12) {
-	stop("Input: SEED (int), MASK_DIR, SIM_OUTDIR, RES_OUTDIR, NON_OVERLAP_USED (0 or positive integer for degree), k, obs, pve, prop_case fst hierarchy chunk.size", call.=FALSE)
+	  stop("Input: SEED (int), MASK_DIR, SIM_OUTDIR, RES_OUTDIR, NON_OVERLAP_USED (0 or positive integer for degree), ind, k, obs, pve, prop_case fst hierarchy, chunk.size", call.=FALSE)
+} else if (length(args) < 13) {
+	stop("Input: SEED (int), MASK_DIR, SIM_OUTDIR, RES_OUTDIR, NON_OVERLAP_USED (0 or positive integer for degree), ind, k, obs, pve, prop_case fst hierarchy chunk.size", call.=FALSE)
 }
 
 
@@ -23,7 +23,7 @@ if (length(args)==0) {
 library(truncnorm)
 library(dplyr)
 library(hash)
-library(bigmemory)
+#library(bigmemory)
 library(parallel)
 
 # Argument assignments
@@ -32,35 +32,28 @@ MASK_DIR <- args[2] # NA or directory
 SIM_OUTDIR <- args[3]
 RES_OUTDIR <- args[4]
 NON_OVERLAP_USED <-as.integer(args[5])
-k <- as.double(args[6]) #Prevalence of the Disease/Trait 
-obs <- as.integer(args[7]) #Number of Cases and Controls
-pve <- as.double(args[8]) #Broad sense heritability             
-prop_case <- as.double(args[9])# fraction case experiments (e.g. in our real ALS data: .883 case experiments)
-fst <- as.double(args[10])# 0 if none, value above 0 otherwise (0.005)
-hierarchy <- as.integer(args[11]) # 0 if no, 1 if yes
-chunk.size <- as.integer(args[12])# use chunks to merge matrices e.g. 100000 (0 otherwise)
+ind <- as.integer(args[6] # Number of individuals in the population
+k <- as.double(args[7]) #Prevalence of the Disease/Trait 
+obs <- as.integer(args[8]) #Number of Cases and Controls
+pve <- as.double(args[9]) #Broad sense heritability             
+prop_case <- as.double(args[10])# fraction case experiments (e.g. in our real ALS data: .883 case experiments)
+fst <- as.double(args[11])# 0 if none, value above 0 otherwise (0.005)
+hierarchy <- as.integer(args[12]) # 0 if no, 1 if yes
+chunk.size <- as.integer(args[13])# use chunks to merge matrices e.g. 100000 (0 otherwise)
 
-################## PARAMS ###########################
+################## OTHER PARAMS ###########################
 # Population Stats
-ind = 10 #15e3 #1e6 # Number of Individuals in the Populations
 propA = 0.5 # Proportion of Population A (pick value 0 - 1)
-tot_snp_sim = 100#1e5 #5e3 #Number of Total SNPs in the Data
-frac_causal = 0.5#0.005 # Fraction of SNPs that are causal
-
-##### GOOD FOR TESTING Population params #######  
-# ind = 1e3 # Number of Individuals in the Populations
-# tot_snp_sim = 80 # Number of Total SNPs in the Data
-# frac_causal = .1 # Fraction of SNPs that are causal
-# k = 0.1 #Prevalence of the Disease/Trait 
-# obs = 50 #Number of Cases and Controls
-################################################
+tot_snp_sim = 1e5 # Number of Total SNPs in the Data
+frac_causal = 0.005 # Fraction of SNPs that are causal
 
 # Simulating phenotypes params
 maf_frac = 0.05 # MAF fraction
 rho=0.5 # proportion that is additive
 
 # Set dataset number to simulate 
-ndatasets = 5 #### 10
+ndatasets = 5
+################################################
 
 cat("params:ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
 
@@ -275,8 +268,8 @@ if (fst>0){
 	rm(Geno2)
     
     }else{
-        geno = big.matrix(cbind(Geno1, Geno2));rm(Geno1);rm(Geno2)
-        #geno = rbind(Geno1,Geno2); rm(Geno1); rm(Geno2)
+        #geno = big.matrix(cbind(Geno1, Geno2));rm(Geno1);rm(Geno2)
+        geno = rbind(Geno1,Geno2); rm(Geno1); rm(Geno2)
     }
 }else if(fst==0){
     # Simulate genotypes without population structure
