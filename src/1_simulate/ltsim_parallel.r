@@ -32,7 +32,7 @@ MASK_DIR <- args[2] # NA or directory
 SIM_OUTDIR <- args[3]
 RES_OUTDIR <- args[4]
 NON_OVERLAP_USED <-as.integer(args[5])
-ind <- as.integer(args[6] # Number of individuals in the population
+ind <- as.integer(args[6]) # Number of individuals in the population
 k <- as.double(args[7]) #Prevalence of the Disease/Trait 
 obs <- as.integer(args[8]) #Number of Cases and Controls
 pve <- as.double(args[9]) #Broad sense heritability             
