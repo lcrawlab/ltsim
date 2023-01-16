@@ -101,7 +101,7 @@ Other parameter settings:
 # Check that sampling is possible
 if(!(ind*k > obs*prop_case)) {
     cat("\n")
-    #stop("Please resolve calculation. The affected/diseased population (ind*k=",ind*k,") must be larger than the desired number of diseased individuals to sample (obs*prop_case=",obs*prop_case,").\n")
+    stop("Please resolve calculation. The affected/diseased population (ind*k=",ind*k,") must be larger than the desired number of diseased individuals to sample (obs*prop_case=",obs*prop_case,").\n")
 }
 
 if(hierarchy){
