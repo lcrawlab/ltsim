@@ -101,7 +101,7 @@ Other parameter settings:
 # Check that sampling is possible
 if(!(ind*k > obs*prop_case)) {
     cat("\n")
-    stop("Please resolve calculation. The affected/diseased population (ind*k=",ind*k,") must be larger than the desired number of diseased individuals to sample (obs*prop_case=",obs*prop_case,").\n")
+    #stop("Please resolve calculation. The affected/diseased population (ind*k=",ind*k,") must be larger than the desired number of diseased individuals to sample (obs*prop_case=",obs*prop_case,").\n")
 }
 
 if(hierarchy){
@@ -321,14 +321,36 @@ if (fst>0){
     cat("Creating genome without FST...\n")
     # Simulate genotypes without population structure
     subsets <- splitIndices(ind*tot_snp_sim, cores)
-    set.seed(SEED)
-    geno_list <- mclapply(subsets, function(x) {
-                 (runif((ind*tot_snp_sim)[x]) < maf) + (runif((ind*tot_snp_sim)[x]) < maf)
-     }, mc.cores = cores)
-    geno <- unlist(geno_list)
-    geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow=TRUE) 
+
+    geno <- (runif(ind*tot_snp_sim) < maf) + (runif(ind*tot_snp_sim) < maf)
+    geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow = TRUE)
     rownames(geno) <- paste0("pop", 1:ind)
     colnames(geno) <- all_snp_names
+    
+#     set.seed(2)
+#     rand_numbers <- runif(ind*tot_snp_sim)
+#     geno_list <- mclapply(subsets, function(x) {
+#                      (rand_numbers[x] < maf) + (rand_numbers[x] < maf)
+#     }, mc.cores = cores, mc.set.seed = TRUE)
+
+#     geno <- unlist(geno_list)
+#     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow=TRUE) 
+#     rownames(geno) <- paste0("pop", 1:ind)
+#     colnames(geno) <- all_snp_names
+#     cat("\ngeno1\n")
+#     print(geno)
+    
+#     set.seed(SEED)
+#     geno_list <- mclapply(subsets, function(x) {
+#                 (runif((ind*tot_snp_sim)[x]) < maf) + (runif((ind*tot_snp_sim)[x]) < maf)
+#     }, mc.cores = cores, mc.set.seed = TRUE)
+#     geno <- unlist(geno_list)
+#     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow=TRUE) 
+#     rownames(geno) <- paste0("pop", 1:ind)
+#     colnames(geno) <- all_snp_names
+#     cat("\ngeno2\n")
+#     print(geno)
+#     stop("smile")
     saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/"))
 
 }else{
