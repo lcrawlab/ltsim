@@ -101,7 +101,7 @@ Other parameter settings:
 # Check that sampling is possible
 if(!(ind*k > obs*prop_case)) {
     cat("\n")
-    stop("Please resolve calculation. The affected/diseased population (ind*k=",ind*k,") must be larger than the desired number of diseased individuals to sample (obs*prop_case=",obs*prop_case,").\n")
+    #stop("Please resolve calculation. The affected/diseased population (ind*k=",ind*k,") must be larger than the desired number of diseased individuals to sample (obs*prop_case=",obs*prop_case,").\n")
 }
 
 if(hierarchy){
@@ -258,29 +258,40 @@ if (fst>0){
     # Create population structure
     cat("Creating genome with FST...\n")
     delta = sqrt(maf-maf^2-maf*(1-maf)*(1-fst))
-    saveRDS(delta, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"delta.rds",sep="/"))    
-    
-    # Split indices
-    subsets <- splitIndices((ind*propA)*tot_snp_sim, cores)
-    
+    saveRDS(delta, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"delta.rds",sep="/"))       
     # Population A
+    cat("\nCreating subsets pop. A ...\n")
+    subsets <- splitIndices((ind*propA)*tot_snp_sim, cores) # Split indices
+    #saveRDS(subsets, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"subsets_A.rds",sep="/"))
     set.seed(SEED)
+    rand_numbers <- runif((ind*propA)*tot_snp_sim)
+    rand_numbers2 <- runif((ind*propA)*tot_snp_sim)
+    cat("\nCreating genome pop. A ...\n")
     geno_list <- mclapply(subsets, function(x) {
-                 (runif(((ind*propA)*tot_snp_sim)[x]) < (maf+delta)) + (runif(((ind*propA)*tot_snp_sim)[x]) < (maf+delta))
-     }, mc.cores = cores)
-    
+                 (rand_numbers[x] < (maf+delta)) + (rand_numbers2[x] < (maf+delta))
+     }, mc.cores = cores, mc.set.seed = TRUE)
+    rm(subsets);rm(rand_numbers);rm(rand_numbers2)
+    saveRDS(geno_list, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_list_A.rds",sep="/"))
     GenoA <- unlist(geno_list); rm(geno_list) 
     GenoA <- matrix(as.double(GenoA),(ind*propA),tot_snp_sim,byrow = TRUE)
     rownames(GenoA) <- paste0("popA",1:dim(GenoA)[1])
     colnames(GenoA) <- all_snp_names
     saveRDS(GenoA, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"GenoA.rds",sep="/"))
     cat("Genome population A dimension: ",dim(GenoA),"\n")
-
+    
     # Population B
+    cat("\nCreating subsets pop. B ...\n")
+    subsets <- splitIndices((ind*(1-propA))*tot_snp_sim, cores) # Split indices
+    saveRDS(subsets, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"subsets_B.rds",sep="/"))
     set.seed(SEED)
+    rand_numbers <- runif((ind*(1-propA))*tot_snp_sim)
+    rand_numbers2 <- runif((ind*(1-propA))*tot_snp_sim)
+    cat("\nCreating genome pop. B ...\n")
     geno_list <- mclapply(subsets, function(x) {
-                 (runif(((ind*(1-propA))*tot_snp_sim)[x]) < (maf-delta)) + (runif(((ind*(1-propA))*tot_snp_sim)[x]) < (maf-delta))
-     }, mc.cores = cores)
+                 (rand_numbers[x] < (maf-delta)) + (rand_numbers2[x] < (maf-delta))
+     }, mc.cores = cores, mc.set.seed = TRUE)
+    rm(subsets);rm(rand_numbers);rm(rand_numbers2)
+    saveRDS(geno_list, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_list_B.rds",sep="/"))
     GenoB <- unlist(geno_list); rm(geno_list)
     GenoB <- matrix(as.double(GenoB),(ind*(1-propA)),tot_snp_sim,byrow = TRUE)
     len_geno1 = dim(GenoA)[1]+1
@@ -320,37 +331,29 @@ if (fst>0){
 }else if(fst==0){
     cat("Creating genome without FST...\n")
     # Simulate genotypes without population structure
-    subsets <- splitIndices(ind*tot_snp_sim, cores)
-
+    set.seed(SEED)
     geno <- (runif(ind*tot_snp_sim) < maf) + (runif(ind*tot_snp_sim) < maf)
     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow = TRUE)
     rownames(geno) <- paste0("pop", 1:ind)
     colnames(geno) <- all_snp_names
-    
-#     set.seed(2)
+#     ### PARALLEL VERSION ###
+#     subsets <- splitIndices(ind*tot_snp_sim, cores)
+#     print(head(subsets))
+#     set.seed(SEED)
 #     rand_numbers <- runif(ind*tot_snp_sim)
+#     rand_numbers2 <- runif(ind*tot_snp_sim)
 #     geno_list <- mclapply(subsets, function(x) {
-#                      (rand_numbers[x] < maf) + (rand_numbers[x] < maf)
+#                      (rand_numbers[x] < maf) + 
+#                      (rand_numbers2[x] < maf)
 #     }, mc.cores = cores, mc.set.seed = TRUE)
-
-#     geno <- unlist(geno_list)
+#     saveRDS(geno_list, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_list.rds",sep="/"))
+#     geno <- unlist(geno_list); rm(geno_list)
 #     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow=TRUE) 
 #     rownames(geno) <- paste0("pop", 1:ind)
 #     colnames(geno) <- all_snp_names
 #     cat("\ngeno1\n")
 #     print(geno)
-    
-#     set.seed(SEED)
-#     geno_list <- mclapply(subsets, function(x) {
-#                 (runif((ind*tot_snp_sim)[x]) < maf) + (runif((ind*tot_snp_sim)[x]) < maf)
-#     }, mc.cores = cores, mc.set.seed = TRUE)
-#     geno <- unlist(geno_list)
-#     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow=TRUE) 
-#     rownames(geno) <- paste0("pop", 1:ind)
-#     colnames(geno) <- all_snp_names
-#     cat("\ngeno2\n")
-#     print(geno)
-#     stop("smile")
+#     ######
     saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/"))
 
 }else{
