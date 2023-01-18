@@ -329,16 +329,62 @@ if (fst>0){
     saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/")) #save(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.RData",sep="/"),compress = TRUE)
     
 }else if(fst==0){
-    cat("Creating genome without FST...\n")
-    # Simulate genotypes without population structure
+#     cat("Creating genome without FST...\n")
+#     # Simulate genotypes without population structure
+#     set.seed(SEED)
+#     geno <- (runif(ind*tot_snp_sim) < maf) + (runif(ind*tot_snp_sim) < maf)
+#     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow = TRUE)
+#     rownames(geno) <- paste0("pop", 1:ind)
+#     colnames(geno) <- all_snp_names
+#     cat("\ngeno NOO parallel\n")
+#     print(geno)    
+
+    ### SPLIT PARALLEL ###
+    subsets <- splitIndices((ind/2)*tot_snp_sim, cores)
     set.seed(SEED)
-    geno <- (runif(ind*tot_snp_sim) < maf) + (runif(ind*tot_snp_sim) < maf)
-    geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow = TRUE)
-    rownames(geno) <- paste0("pop", 1:ind)
+    rand_numbers <- runif((ind/2)*tot_snp_sim)
+    rand_numbers2 <- runif((ind/2)*tot_snp_sim)
+    cat("\nCreating genome first half pop. ...\n")
+    geno_list <- mclapply(subsets, function(x) {
+                     (rand_numbers[x] < maf) + 
+                     (rand_numbers2[x] < maf)
+    }, mc.cores = cores, mc.set.seed = TRUE)
+    rm(subsets);rm(rand_numbers);rm(rand_numbers2);rm(subsets)
+    saveRDS(geno_list, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_list_1st_half.rds",sep="/"))
+    geno_first <- unlist(geno_list); rm(geno_list) 
+    geno_first <- matrix(as.double(geno_first),(ind/2),tot_snp_sim,byrow = TRUE)
+    rownames(geno_first) <- paste0("pop",1:dim(geno_first)[1])
+    colnames(geno_first) <- all_snp_names
+    saveRDS(geno_first, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_first.rds",sep="/"))
+    cat("Genome population first half dimension: ",dim(geno_first),"\n")
+    
+    subsets <- splitIndices((ind/2)*tot_snp_sim, cores)
+    set.seed(SEED)
+    rand_numbers <- runif((ind/2)*tot_snp_sim)
+    rand_numbers2 <- runif((ind/2)*tot_snp_sim)
+    cat("\nCreating genome first half pop. ...\n")
+    geno_list <- mclapply(subsets, function(x) {
+                     (rand_numbers[x] < maf) + 
+                     (rand_numbers2[x] < maf)
+    }, mc.cores = cores, mc.set.seed = TRUE)
+    rm(subsets);rm(rand_numbers);rm(rand_numbers2)
+    saveRDS(geno_list, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_list_2nd_half.rds",sep="/"))
+    geno_second <- unlist(geno_list); rm(geno_list) 
+    geno_second <- matrix(as.double(geno_second),(ind/2),tot_snp_sim,byrow = TRUE)
+    len_geno_first = dim(geno_first)[1]+1
+    rownames(geno_second) <- paste0("pop",len_geno_first:ind)
+    colnames(geno_second) <- all_snp_names
+    saveRDS(geno_second, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno_second.rds",sep="/"))
+    cat("Genome population second half dimension: ",dim(geno_second),"\n")
+
+    cat("Combining populations (first and second half)...\n")
+    geno = rbind(geno_first,geno_second); rm(geno_first); rm(geno_second) # geno = big.matrix(cbind(GenoA, GenoB));rm(GenoA);rm(GenoB)
     colnames(geno) <- all_snp_names
-#     ### PARALLEL VERSION ###
+    saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/")) 
+    ######
+    
+    ### PARALLEL VERSION ###
 #     subsets <- splitIndices(ind*tot_snp_sim, cores)
-#     print(head(subsets))
 #     set.seed(SEED)
 #     rand_numbers <- runif(ind*tot_snp_sim)
 #     rand_numbers2 <- runif(ind*tot_snp_sim)
@@ -351,9 +397,10 @@ if (fst>0){
 #     geno <- matrix(as.double(geno),ind,tot_snp_sim,byrow=TRUE) 
 #     rownames(geno) <- paste0("pop", 1:ind)
 #     colnames(geno) <- all_snp_names
-#     cat("\ngeno1\n")
+#     cat("\ngeno parallel\n")
 #     print(geno)
-#     ######
+#     stop("smile")
+    ######
     saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/"))
 
 }else{
