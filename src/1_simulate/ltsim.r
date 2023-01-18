@@ -66,7 +66,7 @@ hierarchy <- as.integer(args[13]) # 0 if no, 1 if yes
 propA = 0.5 # Proportion of Population A (pick value 0 - 1)
 
 # Simulate phenotypes params
-maf_frac = 0.05 # MAF fraction
+maf_lower = 0.05 # MAF lower bound threshold
 rho=0.5 # proportion that is additive
 
 # Set dataset replicate number to simulate 
@@ -90,13 +90,13 @@ cat("\nParameters set:
 13) hierarchy    ",hierarchy,
 "\n
 Other parameter settings:
-14) maf_frac     ",maf_frac," (MAF fraction)
+14) maf_lower     ",maf_lower," (MAF lower bound threshold)
 15) rho          ",rho,"  (additive heritability proportion)
 16) prop_pop_A   ",propA,"  (population A proportion in total population (if fst>0))
 17) num_datasets ",ndatasets,"    (number dataset replicates)
 ")
 
-#population indiv. size",,"\ntotal SNPs",tot_snp_sim,"\nfrac. SNPs causal",frac_causal,"\nk",k,"\nnumber observ.",obs,"\nMAF frac.",maf_frac,"\nPVE",pve,"\nrho", rho, "\nprop. cases", prop_case, "\nfst", fst,"\nprop. pop A", propA,"\nnumber rep. datasets",ndatasets,"\n")
+#population indiv. size",,"\ntotal SNPs",tot_snp_sim,"\nfrac. SNPs causal",frac_causal,"\nk",k,"\nnumber observ.",obs,"\nMAF frac.",maf_lower,"\nPVE",pve,"\nrho", rho, "\nprop. cases", prop_case, "\nfst", fst,"\nprop. pop A", propA,"\nnumber rep. datasets",ndatasets,"\n")
 
 # Check that sampling is possible
 if(!(ind*k > obs*prop_case)) {
@@ -107,7 +107,7 @@ if(!(ind*k > obs*prop_case)) {
 if(hierarchy){
     if(NON_OVERLAP_USED){
         cat("Non-overlap masks used.\n")
-        SUB_OUTDIR_NAME = paste("non_overlap_degree",NON_OVERLAP_USED,"ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case,"fst", fst, sep="-")
+        SUB_OUTDIR_NAME = paste("non_overlap_degree",NON_OVERLAP_USED,"ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_lower",maf_lower,"pve",pve,"rho", rho, "prop_case", prop_case,"fst", fst, sep="-")
         # Input biological masks
         MASK1_DIR <- paste(MASK_DIR,"masksim_1_non_overlap_labeled.txt",sep="/")
         MASK2_DIR <- paste(MASK_DIR,"masksim_2_non_overlap_labeled.txt",sep="/")
@@ -115,7 +115,7 @@ if(hierarchy){
 
     }else{
         cat("Overlap masks used.\n")
-        SUB_OUTDIR_NAME = paste("ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
+        SUB_OUTDIR_NAME = paste("ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_lower",maf_lower,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
 
         # Input biological masks
         MASK1_DIR <- paste(MASK_DIR,"mask1_pd.txt",sep="/")
@@ -124,7 +124,7 @@ if(hierarchy){
     }
 }else{
     cat("No hierarchy information used.\n")
-    SUB_OUTDIR_NAME = paste("no_hier-ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_frac",maf_frac,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
+    SUB_OUTDIR_NAME = paste("no_hier-ind",ind,"tot_snp_sim",tot_snp_sim,"frac_causal",frac_causal,"k",k,"obs",obs,"maf_lower",maf_lower,"pve",pve,"rho", rho, "prop_case", prop_case, "fst", fst, sep="-")
 }
 ######################################################
 
@@ -252,7 +252,7 @@ if (hierarchy){
 
 # Generate causal SNP genome across individuals (ind)
 cat("\nCreate genome:\n")
-maf <- maf_frac + 0.4*runif(tot_snp_sim)
+maf <- maf_lower + 0.4*runif(tot_snp_sim)
 saveRDS(maf, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"maf.rds",sep="/"))
 if (fst>0){
     # Create population structure
