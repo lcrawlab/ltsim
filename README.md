@@ -1,6 +1,6 @@
-# ltsim
+# LT-Sim
 
-Biologically informed disease simulations using a liability threshold model with downstream logistic regression and random forest for classification and interpretation tasks
+A liability threshold linear mixed model simulation tool for case-control studies.
 
 ### Toggles
 For each dataset there are 100 replicates. For those replicates, the following are constant: $k$, number observations (i.e. samples), number SNPs, PVE, and MAF (0.001 - 0.5). 
