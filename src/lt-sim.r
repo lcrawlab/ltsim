@@ -1,4 +1,4 @@
-# lt_simulations_fst.r
+# lt_sim.r
 # Last mod. 11/09/2022
 # Ashley Mae Conard
 
