@@ -3,18 +3,21 @@
 # Last Mod. 11/17/21
 
 # Check to make sure input is correct
-if [ $# -le 8 ]; then
-	echo 'Usage: ./run_sims.sh 
-                1) SEED
-                2) FULL/PATH/TO/MASK_DIR/
-                3) FULL/PATH/TO/SIM_OUTDIR/
-                4) FULL/PATH/TO/RES_OUTDIR/
-                5) NUM_PROCESSORS
-                6) NON_OVERLAP_USED (0 or positive integer for degree)
-                7) FULL/PATH/TO/K_FILE 
-                8) FULL/PATH/TO/OBS_FILE
-                9) FULL/PATH/TO/PVE_FILE
-                NOTE: Parameter files can be separated by a space or left empty.
+if [ $# -le 12 ]; then
+	echo 'Usage: ./lt-sim_sweeps.sh 
+            1) seed                  (integer) 
+            2) /PATH/TO/mask         (path to mask or type NA) 
+            3) /PATH/TO/output_dir   (path for generated output)
+            4) degree                (0 or positive integer for degree)
+            5) ind                   (number of individuals in the population)
+            6) k                     (prevalence of the disease/trait in population)
+            7) pve                   (broad sense heritability)
+            8) fst                   (targeted fixation index as a measure of population \\ differentiation due to genetic structure (suggest 0.05))
+            9) obs                   (total observed population)
+            10) prop_case            (proportion of case observations) 
+            11) tot_snp_sim          (total number SNPs in population)
+            12) frac_causal          (proportion of causal SNPs in population)
+            13) hierarchy            (sample causal SNPs according to biological annotations (e.g., genes or pathways)
          '
 	exit 1
 fi
@@ -75,34 +78,11 @@ do
             fi 
 
             # conda activate multio_case_ctrl
-            echo "( /usr/bin/time Rscript /data/compbio/aconard/microsoft_research/mit_collab/sparsenn/simulations/lt_sims/lt_simulations.r $SEED $MASK_DIR $SIM_OUTDIR $RES_OUTDIR $NON_OVERLAP_USED $k $obs $pve > $RES_OUTDIR/run_out.seed$SEED-k$k-obs$obs-pve$pve.txt 2>&1) &">> $COMMAND_SCRIPT
+            echo "( /usr/bin/time Rscript lt-sim.r $SEED $MASK_DIR $SIM_OUTDIR $RES_OUTDIR $NON_OVERLAP_USED $k $obs $pve > $RES_OUTDIR/run_out.seed$SEED-k$k-obs$obs-pve$pve.txt 2>&1) &">> $COMMAND_SCRIPT
         done
     done  
 done 
 
 # Run command
-# bash $COMMAND_SCRIPT
-echo "Script ready to run with ./$COMMAND_SCRIPT"
-
-
-
-#################################
-# echo "python ../../../BANNs/BANN_numpy/run_banns.py $SIMDIR $BANNS_RES" >> COMMAND_SCRIPT # TODO: get SIMDIR # TODO: make relative to another folder
-# echo "python SCHD.py $SIMDIR $SCHD_RES" >> COMMAND_SCRIPT
-# echo "python ../roc_curve.py $SIMDIR $OUTDIR" >> COMMAND_SCRIPT
-
-
-
-# for ((i=1;i<=NUM_SIM_RUNS;i++))
-#     do
-#         echo "Combination: seed $SEED, k $k, samples $obs, and PVE (H^2) $pve"
-#         #((i = i + 1)) # Incrementing counter
-#         ((SEED = SEED + 1)) # Incrementing seed
-#         # If number of processors reached, add wait to form a batch that will finish, and then process the next batch
-#         if (( ${i}%${NUM_PROCESSORS}==0 )); then # was 
-#             echo "wait" >> $COMMAND_SCRIPT
-#         fi 
-
-#         # conda activate multio_case_ctrl
-#         echo "( /usr/bin/time Rscript /data/compbio/aconard/microsoft_research/mit_collab/sparsenn/simulations/lt_sims/lt_simulations.r $SEED $MASK_DIR $OUTDIR $METHOD_OUTDIR $NON_OVERLAP_USED $k $obs $pve 2> $OUTDIR/run_out.$SEED.txt) &">> $COMMAND_SCRIPT
-# done
+echo "LT-Sim prepared your script here: $COMMAND_SCRIPT for your review."
+echo "LT-Sim script ready to run with ./$COMMAND_SCRIPT"
