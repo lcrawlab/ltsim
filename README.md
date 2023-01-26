@@ -3,6 +3,7 @@
 A liability threshold linear mixed model simulation tool for case-control studies.
 
 ### Overview
+A major focus in human genetics is the development of computational models that can both accurately predict disease risk and identify mutations that influence phenotypic variation. Currently, it is a challenge for researchers to effectively assess the power of their methods due to the lack of scalable simulation tools that can emulate complex genetic interactions and realistic trait architectures. This is particularly difficult for simulating synthetic binary phenotypes which, in reality, suffer from ascertainment bias due to the unequal distribution of case and control populations in nature. In response, here we present LT-sim: a software package that uses a liability threshold linear mixed model to properly simulate ascertainment and other properties that naturally occur in case-control data. We apply LT-Sim in common and rare disease scenarios of type 1 diabetes and ALS, and demonstrate the software’s ability to enable *in-silico* hypothesis testing efficiently.
 
 <img src="https://github.com/lcrawlab/ltsim/blob/main/figs/fig1_ltim.png" height="350">
 
