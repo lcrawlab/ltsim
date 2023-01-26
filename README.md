@@ -2,6 +2,10 @@
 
 A liability threshold linear mixed model simulation tool for case-control studies.
 
+### Overview
+
+<img src="https://github.com/lcrawlab/ltsim/blob/master/figs/fig1_ltim.png" height="150">
+
 ### Toggles
 For each dataset there are 100 replicates. For those replicates, the following are constant: $k$, number observations (i.e. samples), number SNPs, PVE, and MAF (0.001 - 0.5). 
 
