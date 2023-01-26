@@ -7,7 +7,19 @@ A major focus in human genetics is the development of computational models that 
 
 <img src="https://github.com/lcrawlab/ltsim/blob/main/figs/fig1_ltim.png" height="350">
 
-### Toggles
+The objective of LT-Sim is to generate synthetic genetic data that mimic biological relationships among individuals while maintaining population structure and accounting for selection biases frequently present in case-control studies. A. Such studies are commonly modeled using a liability threshold model, which provides a continuous liability distribution to generate case/control phenotypes.
+On the latent liability model, the x-axis represents the continuous liability scale, while the y-axis represents the density of the population corresponding to a liability score. The liability threshold (red dotted line), separates individuals who are affected with the disease from those who are not. B. LT-Sim provides 13 parameters at the population (parameters 1 - 7), observation (parameters 8,9), and genotype levels (parameters 10 - 13) so that users can simulate the full spectrum of case-control studies.
+
+### Installation
+1) Clone the LT-Sim repo: `git clone https://github.com/lcrawlab/ltsim.git`
+2) Install dependencies:
+    - R (4.1.1)
+    - parallel (4.1.1)
+    - truncnorm (1.0.8)
+    - hash (2.2.6.1)
+    - dplyr (1.0.7)
+
+### 
 For each dataset there are 100 replicates. For those replicates, the following are constant: $k$, number observations (i.e. samples), number SNPs, PVE, and MAF (0.001 - 0.5). 
 
 ### Replicates
