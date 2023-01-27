@@ -24,9 +24,9 @@ On the latent liability model, the x-axis represents the continuous liability sc
 #### Overview
 LT-Sim can be run in 2 ways, 
 
-    1) with single inputs for each input parameter using `lt-sim.r` 
+1. with single inputs for each input parameter using `lt-sim.r` 
 
-    2) with multiple inputs for one/multiple input parameters using `lt-sim.sh`.
+2. with multiple inputs for one/multiple input parameters using `lt-sim.sh`.
 
 #### To run
 
