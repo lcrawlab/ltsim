@@ -1,8 +1,4 @@
-# lt_sim.r
-# Last mod. 11/09/2022
-# Ashley Mae Conard
-
-# TO DO : MAKE PATHWAY->GENE->SNP HIERARCHY OPTIONAL
+# lt-sim.r
 
 # Clear console
 cat("\014")
@@ -96,7 +92,6 @@ Other parameter settings:
 17) num_datasets ",ndatasets,"    (number dataset replicates)
 ")
 
-#population indiv. size",,"\ntotal SNPs",tot_snp_sim,"\nfrac. SNPs causal",frac_causal,"\nk",k,"\nnumber observ.",obs,"\nMAF frac.",maf_lower,"\nPVE",pve,"\nrho", rho, "\nprop. cases", prop_case, "\nfst", fst,"\nprop. pop A", propA,"\nnumber rep. datasets",ndatasets,"\n")
 
 # Check that sampling is possible
 if(!(ind*k > obs*prop_case)) {
@@ -369,9 +364,9 @@ if (fst>0){
 #     cat("\ngeno parallel\n")
 #     print(geno)
 #     stop("smile")
+#    saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/"))
     ######
-    saveRDS(geno, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"geno.rds",sep="/"))
-
+    
 }else{
     exit("Please enter an FST value >0, or type 0 to run LTSim without FST.\n")
 }
@@ -428,21 +423,9 @@ for (ndat in 1:ndatasets){
     rm(Xmarginal); rm(Xcausal3)
     
     cat("Create causal epistatic matrix between s1 and s2 SNPs with dimension.\n")
-    #time2 <-system.time({
     Xepi=c()
     Xepi <- do.call(cbind,lapply(1:ncol(Xcausal1), function(x) Xcausal1[,x]*Xcausal2))
     saveRDS(Xepi, file=paste(SIM_OUTDIR,SUB_OUTDIR_NAME,"Xepi.rds",sep="/"))
-    #})
-    
-    # Old way of computing Xepi
-    # time1 <- system.time({
-    # Xepi=c()
-    # for(i in 1:ncausal1){
-    #       Xepi=cbind(Xepi,Xcausal1[,i]*Xcausal2)
-    #     }
-    # })
-    #cat("Are they the same?", all.equal(Xepi, Xepi2))
-    #cat("\nXepi1: ",time1["user.child"], "and Xepi2: ",time2["user.child"])
    
     #Remove unneeded causal SNP parameters for storage"
     rm(Xcausal1); rm(Xcausal2)
@@ -585,4 +568,4 @@ for (ndat in 1:ndatasets){
     }
 }
 
-cat("\nLTSim complete. Results are here:",path,"\n")
+cat("\nLT-Sim complete. Results are here:",path,"\n")
