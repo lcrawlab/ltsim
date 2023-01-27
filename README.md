@@ -34,6 +34,6 @@ LT-Sim can be run in 2 ways,
 
 `Rscript lt-sim.r $seed $mask_dir $output_dir $non_overlap $ind $k $pve $fst $obs $prop_case_tot_snp_sim $frac_causal $hierarchy`
 
-2) Given a parameter sweep of interest, generate the file(s) for which the sweep is of interest, and pass those directly:
+2) Given a parameter sweep of interest, generate the file(s) for which the sweep is of interest, where each value of interest for a given input parameter is separated by a space, and pass those directly to this Bash script:
 
 `./lt-sim.sh $seed $mask_dir $output_dir $non_overlap $ind $k $pve $fst $obs $prop_case_tot_snp_sim $frac_causal $hierarchy`
