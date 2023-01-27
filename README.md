@@ -11,7 +11,8 @@ The objective of LT-Sim is to generate synthetic genetic data that mimic biologi
 On the latent liability model, the x-axis represents the continuous liability scale, while the y-axis represents the density of the population corresponding to a liability score. The liability threshold (red dotted line), separates individuals who are affected with the disease from those who are not. B. LT-Sim provides 13 parameters at the population (parameters 1 - 7), observation (parameters 8,9), and genotype levels (parameters 10 - 13) so that users can simulate the full spectrum of case-control studies.
 
 ### Installation
-1) Clone the LT-Sim repo: `git clone https://github.com/lcrawlab/ltsim.git`
+1) Clone the LT-Sim repo: 
+    - `git clone https://github.com/lcrawlab/ltsim.git`
 2) Install dependencies:
     - `R` (4.1.1)
     - `parallel` (4.1.1)
