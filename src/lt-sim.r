@@ -12,7 +12,7 @@ param_string = "\nLTSim requires the following inputs:
 1) seed         (integer) 
 2) mask_dir     (path to mask or type NA) 
 3) output_dir   (path for generated output)
-4) degree       (0 or positive integer for degree)
+4) degree       (0 if mask not used, or positive integer for degree)
 5) ind          (number of individuals in the population)
 6) k            (prevalence of the disease/trait in population)
 7) pve          (broad sense heritability)
