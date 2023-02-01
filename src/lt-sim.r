@@ -1,32 +1,54 @@
 # lt-sim.r
 
+suppressPackageStartupMessages(library("argparser"))
+
 # Clear console
 cat("\014")
 
 # Clear environment
 rm(list = ls(all = TRUE))
 
-# Input
-args = commandArgs(TRUE)
-param_string = "\nLTSim requires the following inputs: 
-1) seed         (integer) 
-2) mask_dir     (path to mask or type NA) 
-3) output_dir   (path for generated output)
-4) degree       (0 if mask not used, or positive integer for degree)
-5) ind          (number of individuals in the population)
-6) k            (prevalence of the disease/trait in population)
-7) pve          (broad sense heritability)
-8) fst          (targeted fixation index as a measure of population \\ differentiation due to genetic structure (suggest 0.05))
-9) obs          (total observed population)
-10) prop_case   (proportion of case observations) 
-11) tot_snp_sim (total number SNPs in population)
-12) frac_causal (proportion of causal SNPs in population)
-13) hierarchy   (sample causal SNPs according to biological annotations (e.g., genes or pathways)\n"
-if (length(args)==0) {
-	  stop(param_string, call.=FALSE)
-} else if (length(args) < 13 || length(args) > 13) {
-	stop(param_string, call.=FALSE)
-}
+# create parser object
+parser <- arg_parser("LTSim")
+
+# specify our desired options 
+parser <- add_argument(parser, "output_dir", type="character",
+                       help="Path for generated output")
+parser <- add_argument(parser, "--seed", type="integer", default=0,
+                    help="Random seed to use in generating simulated data")
+parser <- add_argument(parser, "--mask_dir", type="character", default=NA,
+                    help="Path to SNP/pathway hierarchy mask (default: NA)")
+parser <- add_argument(parser, "--degree", type="integer", default=0,
+                       help="Degree of non-overlapping pathways if mask used")
+parser <- add_argument(parser, "--ind", type="integer", default=1000,
+                       help="Number of individuals in population")
+parser <- add_argument(parser, "--k", type="double", default=0.15,
+                       help="Prevalence of disease/trait in population")
+parser <- add_argument(parser, "--pve", type="double", default=0.4,
+                       help="Broad sense heritability")
+parser <- add_argument(parser, "--fst", type="double", default=0.05,
+                       help="Targeted fixation index as a measure of population \ differentiation due to genetic structure")
+parser <- add_argument(parser, "--obs", type="integer", default=200,
+                       help="Total observed population")
+parser <- add_argument(parser, "--prop_case", type="double", default=0.5,
+                       help="Proportion of case observations")
+parser <- add_argument(parser, "--tot_snp_sim", type="integer", default=1000,
+                       help="Total number of SNPs in population")
+parser <- add_argument(parser, "--frac_causal", type="double", default=0.1,
+                       help="Proportion of causal SNPs in population")
+parser <- add_argument(parser, "--hierarchy", flag=TRUE,
+                       help="Set this flag to sample causal SNPs according to biological annotations (e.g., genes or pathways)")
+
+# Other optional arguments 
+parser <- add_argument(parser, "--maf_lower", type="double", default=0.05,
+                       help="Minor allele frequency lower bound")
+parser <- add_argument(parser, "--rho", type="double", default=0.5,
+                       help="Proportion of additive genetic variation")
+parser <- add_argument(parser, "--prop_pop_A", type="double", default=0.5,
+                       help="Proportion of population A relative to total")
+parser <- add_argument(parser, "--num_reps", type="integer", default=5,
+                       help="Number of dataset replicates")
+
 
 # Load R libraries
 library(truncnorm)
@@ -36,44 +58,46 @@ library(parallel)
 
 #### Argument assignments ####
 # Script settings
-SEED <- as.integer(args[1]); set.seed(SEED)
-MASK_DIR <- args[2] # NA or directory
-SIM_OUTDIR <- args[3]
-NON_OVERLAP_USED <- as.integer(args[4])
+argv <- parse_args(parser)
+
+SEED <- as.integer(argv$seed); set.seed(SEED)
+MASK_DIR <- argv$mask_dir # NA or directory
+SIM_OUTDIR <- argv$output_dir
+NON_OVERLAP_USED <- as.integer(argv$degree)
 
 # Population number params
-ind <- as.integer(args[5]) # Number of individuals in the population
-k <- as.double(args[6]) # Prevalence of the disease/trait 
-pve <- as.double(args[7]) # Broad sense heritability             
-fst <- as.double(args[8])# 0 if none, value above 0 otherwise (0.005)
+ind <- as.integer(argv$ind) # Number of individuals in the population
+k <- as.double(argv$k) # Prevalence of the disease/trait 
+pve <- as.double(argv$pve) # Broad sense heritability             
+fst <- as.double(argv$fst)# 0 if none, value above 0 otherwise (0.005)
 
 # Sampling params
-obs <- as.integer(args[9]) # Number of cases and controls
-prop_case <- as.double(args[10])# Fraction case samples
+obs <- as.integer(argv$obs) # Number of cases and controls
+prop_case <- as.double(argv$prop_case)# Fraction case samples
 
 # Causal SNP params
-tot_snp_sim <- as.integer(args[11]) # Number of total SNPs in the data (e.g. 1e5)
-frac_causal <- as.double(args[12]) # Fraction of SNPs that are causal (e.g. 0.005)
-hierarchy <- as.integer(args[13]) # 0 if no, 1 if yes
+tot_snp_sim <- as.integer(argv$tot_snp_sim) # Number of total SNPs in the data (e.g. 1e5)
+frac_causal <- as.double(argv$frac_causal) # Fraction of SNPs that are causal (e.g. 0.005)
+hierarchy <- as.integer(argv$hierarchy) # 0 if no, 1 if yes
 #chunk.size <- as.integer(args[14])# use chunks to merge matrices e.g. 100000 (0 otherwise)
 
 #### Other arguments ####
 # Population stat params
-propA = 0.5 # proportion of population A (pick value 0 - 1)
+propA = argv$prop_pop_A # proportion of population A (pick value 0 - 1)
 
 # Simulate phenotypes params
-maf_lower = 0.05 # minor allele frequency lower bound
-rho=0.5 # proportion of additive genetic variation
+maf_lower = argv$maf_lower # minor allele frequency lower bound
+rho = argv$rho # proportion of additive genetic variation
 
 # Set dataset replicate number to simulate 
-ndatasets = 5 # number dataset replicates
+ndatasets = argv$num_reps # number dataset replicates
 #########################
 
 cat("\nWelcome to LTSim. Lets get started.\n")
 cat("\nParameters set: 
-1) seed          ",SEED," 
-2) mask_dir      ",MASK_DIR,"
-3) output_dir    ",SIM_OUTDIR,"
+1) output_dir    ",SIM_OUTDIR,"
+2) seed          ",SEED," 
+3) mask_dir      ",MASK_DIR,"
 4) non_overlap   ",NON_OVERLAP_USED,"
 5) ind           ",ind,"
 6) k             ",k,"
@@ -83,9 +107,7 @@ cat("\nParameters set:
 10) prop_case    ",prop_case,"
 11) tot_snp_sim  ",tot_snp_sim,"
 12) frac_causal  ",frac_causal,"
-13) hierarchy    ",hierarchy,
-"\n
-Other parameter settings:
+13) hierarchy    ",hierarchy,"
 14) maf_lower     ",maf_lower," (MAF lower bound threshold)
 15) rho          ",rho,"  (additive heritability proportion)
 16) prop_pop_A   ",propA,"  (population A proportion in total population (if fst>0))

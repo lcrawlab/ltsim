@@ -31,9 +31,57 @@ LT-Sim can be run in 2 ways,
 
 #### To run
 
-1) Given a parameter setting of interest, the user can immediately submit those values as input parameters to the LT-Sim R script:
+1) Given a parameter setting of interest, the user can immediately submit those values as input parameters to the LT-Sim R script. For example:
 
-`Rscript lt-sim.r $seed $mask_dir $output_dir $non_overlap $ind $k $pve $fst $obs $prop_case_tot_snp_sim $frac_causal $hierarchy`
+`Rscript lt-sim.r /path/for/outputs --ind 2000 --k 0.1 --obs 200 --tot_snp_sim 1000 --frac_causal 0.1`
+
+Additional argument information and defaults for all other arguments can be seen with `Rscript lt-sim.r --help`:
+
+```
+usage: lt-sim.r [--] [--help] [--hierarchy] [--opts OPTS] [--seed SEED]
+       [--mask_dir MASK_DIR] [--degree DEGREE] [--ind IND] [--k K]
+       [--pve PVE] [--fst FST] [--obs OBS] [--prop_case PROP_CASE]
+       [--tot_snp_sim TOT_SNP_SIM] [--frac_causal FRAC_CAUSAL]
+       [--maf_lower MAF_LOWER] [--rho RHO] [--prop_pop_A PROP_POP_A]
+       [--num_reps NUM_REPS] output_dir
+
+LTSim
+
+positional arguments:
+  output_dir         Path for generated output
+
+flags:
+  -h, --help         show this help message and exit
+  --hierarchy        Set this flag to sample causal SNPs according to
+                     biological annotations (e.g., genes or pathways)
+
+optional arguments:
+  -x, --opts         RDS file containing argument values
+  -s, --seed         Random seed to use in generating simulated data
+                     [default: 0]
+  -m, --mask_dir     Path to SNP/pathway hierarchy mask (default: NA)
+  -d, --degree       Degree of non-overlapping pathways if mask used
+                     [default: 0]
+  -i, --ind          Number of individuals in population [default:
+                     1000]
+  -k, --k            Prevalence of disease/trait in population
+                     [default: 0.15]
+  -p, --pve          Broad sense heritability [default: 0.4]
+  -f, --fst          Targeted fixation index as a measure of population
+                     differentiation due to genetic structure [default:
+                     0.05]
+  -o, --obs          Total observed population [default: 200]
+  --prop_case        Proportion of case observations [default: 0.5]
+  -t, --tot_snp_sim  Total number of SNPs in population [default: 1000]
+  --frac_causal      Proportion of causal SNPs in population [default:
+                     0.1]
+  --maf_lower        Minor allele frequency lower bound [default: 0.05]
+  -r, --rho          Proportion of additive genetic variation [default:
+                     0.5]
+  --prop_pop_A       Proportion of population A relative to total
+                     [default: 0.5]
+  -n, --num_reps     Number of dataset replicates [default: 5]
+```
 
 2) Given a parameter sweep of interest, generate the file(s) for which the sweep is of interest, where each value of interest for a given input parameter is separated by a space, and pass those directly to this Bash script:
 
