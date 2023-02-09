@@ -27,7 +27,7 @@ LT-Sim can be run in 2 ways,
 
 1. with single inputs for each input parameter using `lt-sim.r` 
 
-2. with multiple inputs for one/multiple input parameters using `lt-sim.sh`.
+2. with multiple inputs for one/multiple input parameters using `lt-sim_sweeps.r`.
 
 #### To run
 
@@ -35,7 +35,7 @@ LT-Sim can be run in 2 ways,
 
 `Rscript lt-sim.r /path/for/outputs --ind 2000 --k 0.1 --obs 200 --tot_snp_sim 1000 --frac_causal 0.1`
 
-Additional argument information and defaults for all other arguments can be seen with `Rscript lt-sim.r --help`:
+Additional usage information and defaults for all other arguments can be seen with `Rscript lt-sim.r --help`:
 
 ```
 usage: lt-sim.r [--] [--help] [--hierarchy] [--opts OPTS] [--seed SEED]
@@ -83,6 +83,72 @@ optional arguments:
   -n, --num_reps     Number of dataset replicates [default: 5]
 ```
 
-2) Given a parameter sweep of interest, generate the file(s) for which the sweep is of interest, where each value of interest for a given input parameter is separated by a space, and pass those directly to this Bash script:
+2) To run LT-Sim across multiple parameter values for one or more parameters, first generate file(s) containing parameter values to sweep over, separated by spaces. For example, this file could be used to simulate populations across different values of broad sense heritability for the trait of interest: 
 
-`./lt-sim.sh $seed $mask_dir $output_dir $non_overlap $ind $k $pve $fst $obs $prop_case_tot_snp_sim $frac_causal $hierarchy`
+pve_values.txt:
+```
+0.4 0.6 0.8
+```
+
+The user can then easily run LT-Sim for this parameter sweep (with all other parameters set to default values) using the following command: 
+
+`Rscript lt-sim_sweeps.r /path/for/outputs --pve_file /path/to/pve_values.txt`
+
+Additional usage information and defaults for all other arguments can be seen with `Rscript lt-sim_sweeps.r --help`:
+
+```
+usage: lt-sim_sweeps.r [--] [--help] [--hierarchy] [--dry_run] [--opts
+       OPTS] [--ind_file IND_FILE] [--k_file K_FILE] [--pve_file
+       PVE_FILE] [--fst_file FST_FILE] [--obs_file OBS_FILE]
+       [--prop_case_file PROP_CASE_FILE] [--tot_snp_sim_file
+       TOT_SNP_SIM_FILE] [--frac_causal_file FRAC_CAUSAL_FILE]
+       [--maf_lower_file MAF_LOWER_FILE] [--rho_file RHO_FILE]
+       [--prop_pop_A_file PROP_POP_A_FILE] [--seed SEED] [--mask_dir
+       MASK_DIR] [--degree DEGREE] [--num_reps NUM_REPS] output_dir
+
+LT-Sim Parameter Sweep Helper Script
+
+positional arguments:
+  output_dir              Path for generated output
+
+flags:
+  -h, --help              show this help message and exit
+  --hierarchy             Set this flag to sample causal SNPs according
+                          to biological annotations (e.g., genes or
+                          pathways)
+  --dry_run               Print commands needed to run parameter sweep
+                          to stdout without running lt-sim
+
+optional arguments:
+  -x, --opts              RDS file containing argument values
+  -i, --ind_file          Path to file with number of individuals in
+                          population to test
+  -k, --k_file            Path to file with prevalences of
+                          disease/trait in population to test
+  -p, --pve_file          Path to file with broad sense heritability
+                          values to test
+  -f, --fst_file          Path to file with FST values to test
+  -o, --obs_file          Path to file with total observed population
+                          values to test
+  --prop_case_file        Path to file with proportion of case
+                          observations to test
+  -t, --tot_snp_sim_file  Path to file with total number of SNPs in
+                          population to test
+  --frac_causal_file      Path to file with proportion of causal SNPs
+                          in population to test
+  -m, --maf_lower_file    Path to file with minor allele frequency
+                          lower bounds to test
+  -r, --rho_file          Path to file with proportions of additive
+                          genetic variation to test
+  --prop_pop_A_file       Path to file with proportions of population A
+                          relative to total to test
+  -s, --seed              Random seed to use in generating simulated
+                          data [default: 0]
+  --mask_dir              Path to SNP/pathway hierarchy mask (default:
+                          NA)
+  -d, --degree            Degree of non-overlapping pathways if mask
+                          used [default: 0]
+  -n, --num_reps          Number of dataset replicates [default: 5]
+```
+
+
