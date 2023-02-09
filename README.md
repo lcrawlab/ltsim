@@ -150,5 +150,12 @@ optional arguments:
                           used [default: 0]
   -n, --num_reps          Number of dataset replicates [default: 5]
 ```
+#### LT-Sim Outputs
 
+LT-Sim generates synthetic genotype and phenotype data as .txt files in space-delimited format. Output files are located in subdirectories of the provided `output_dir` and specified by parameter settings, such as 
 
+`no_hier-ind-1200-tot_snp_sim-1000-frac_causal-0.1-k-0.3-obs-200-maf_lower-0.05-pve-0.4-rho-0.5-prop_case-0.5-fst-0.05`
+
+Each subdirectory contains genotype files where rows represent individuals and columns represent SNPs, in both 012 matrix format (`Xsim_labeled.<replicate>.txt`) and centered and scaled matrix format (`Xsim_labeled_cent_scal.<replicate>.txt`). If applicable, individuals are named according to their population subgroup (`popA` or `popB`).
+
+Phenotype files (`ysim_labeled.<replicate>.txt`) feature the same individual names and a column indicating case (2) or control (1) status. 
