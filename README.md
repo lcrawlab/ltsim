@@ -45,7 +45,7 @@ usage: lt-sim.r [--] [--help] [--hierarchy] [--opts OPTS] [--seed SEED]
        [--maf_lower MAF_LOWER] [--rho RHO] [--prop_pop_A PROP_POP_A]
        [--num_reps NUM_REPS] output_dir
 
-LTSim
+LT-Sim
 
 positional arguments:
   output_dir         Path for generated output
@@ -68,8 +68,8 @@ optional arguments:
                      [default: 0.15]
   -p, --pve          Broad sense heritability [default: 0.4]
   -f, --fst          Targeted fixation index as a measure of population
-                     differentiation due to genetic structure [default:
-                     0.05]
+                     differentiation due to genetic structure.  Set to
+                     0 to simulate single population. [default: 0.05]
   -o, --obs          Total observed population [default: 200]
   --prop_case        Proportion of case observations [default: 0.5]
   -t, --tot_snp_sim  Total number of SNPs in population [default: 1000]

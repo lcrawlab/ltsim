@@ -9,7 +9,7 @@ cat("\014")
 rm(list = ls(all = TRUE))
 
 # create parser object
-parser <- arg_parser("LTSim")
+parser <- arg_parser("LT-Sim")
 
 # specify our desired options 
 parser <- add_argument(parser, "output_dir", type="character",
@@ -27,7 +27,7 @@ parser <- add_argument(parser, "--k", type="double", default=0.15,
 parser <- add_argument(parser, "--pve", type="double", default=0.4,
                        help="Broad sense heritability")
 parser <- add_argument(parser, "--fst", type="double", default=0.05,
-                       help="Targeted fixation index as a measure of population \ differentiation due to genetic structure")
+                       help="Targeted fixation index as a measure of population \ differentiation due to genetic structure. \ Set to 0 to simulate single population.")
 parser <- add_argument(parser, "--obs", type="integer", default=200,
                        help="Total observed population")
 parser <- add_argument(parser, "--prop_case", type="double", default=0.5,
